@@ -44,6 +44,6 @@ jobs:
         with:
           name: profiles
           path: |
-            benchmarking/archives/data/
-            benchmarking/archives/perf/
+            archives/data/
+            archives/perf/
           if-no-files-found: error
