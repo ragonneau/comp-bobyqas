@@ -3,8 +3,6 @@ import pdfo
 import pybobyqa
 import scipy
 
-from .utils import get_logger
-
 
 class Minimizer:
     def __init__(self, problem, solver, max_eval, options, callback, *args, **kwargs):
@@ -35,7 +33,6 @@ class Minimizer:
         a_eq = self.problem.a_eq
         b_eq = self.problem.b_eq
         options = dict(self.options)
-        logger = get_logger(__name__)
         if self.solver.lower() in pdfo.__all__:
             method = self.solver if self.solver.lower() != 'pdfo' else None
             bounds = pdfo.Bounds(xl, xu)
