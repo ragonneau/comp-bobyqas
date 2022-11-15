@@ -20,24 +20,18 @@ class Profiles:
     BASE_DIR = Path(__file__).resolve(True).parent.parent
     ARCH_DIR = Path(BASE_DIR, 'archives')
 
-    def __init__(self, n_min, n_max, constraints, m_min=0, m_max=np.inf, feature='plain', callback=None, **kwargs):
+    def __init__(self, n_min, n_max, constraints, feature='plain', callback=None, **kwargs):
         # All features:
         # 1. plain: the problems are left unmodified.
-        # 2. Lq, Lh, L1: an p-regularization term is added to the objective
-        #   functions of all problems, with p = 0.25, 0.5, and 1, respectively.
-        #   The following keyword arguments may be supplied:
-        #   2.1. regularization: corresponding parameter (default is 1.0).
-        # 3. noisy: a Gaussian noise is included in the objective functions of
+        # 2. noisy: a Gaussian noise is included in the objective functions of
         #   all problems. The following keyword arguments may be supplied:
-        #   3.1. noise_type: noise type (default is relative).
-        #   3.2. noise_level: standard deviation of the noise (default is 1e-3).
-        #   3.3. rerun: number of experiment runs (default is 10).
-        # 4. digits[0-9]+: only the first digits of the objective function
+        #   2.1. noise_type: noise type (default is relative).
+        #   2.2. noise_level: standard deviation of the noise (default is 1e-3).
+        #   2.3. rerun: number of experiment runs (default is 10).
+        # 3. digits[0-9]+: only the first digits of the objective function
         #   values are significant (the other are randomized).
         self.n_min = n_min
         self.n_max = n_max
-        self.m_min = m_min
-        self.m_max = m_max
         self.max_eval = 500 * self.n_max
         self.constraints = constraints
         self.feature = feature
@@ -54,12 +48,10 @@ class Profiles:
         if self.feature != 'plain':
             # Suffix the feature's directory name with the corresponding
             # feature's options. We exclude the options that are redundant with
-            # the feature (e.g., if feature='Lq', then p=0.25).
+            # the feature (e.g., if feature='plain', then rerun=1).
             options_suffix = dict(self.feature_options)
             if self.feature != 'noisy':
                 del options_suffix['rerun']
-            if self.feature in ['Lq', 'Lh', 'L1']:
-                del options_suffix['p']
             options_details = '_'.join(f'{k}-{v}' for k, v in options_suffix.items())
             self.perf_dir = Path(self.perf_dir, options_details)
             self.data_dir = Path(self.data_dir, options_details)
@@ -67,7 +59,7 @@ class Profiles:
 
         # Load the CUTEst problems.
         logger = get_logger(__name__)
-        self.problems = Problems(self.n_min, self.n_max, self.m_min, self.m_max, self.constraints, self.callback)
+        self.problems = Problems(self.n_min, self.n_max, self.constraints, self.callback)
         logger.info(f'Problem(s) successfully loaded: {len(self.problems)}')
 
         # Set up matplotlib for plotting the profiles.
@@ -93,10 +85,7 @@ class Profiles:
     def get_feature_options(self, **kwargs):
         signif = re.match(r'digits(\d+)', self.feature)
         options = {'rerun': 1}
-        if self.feature in ['Lq', 'Lh', 'L1']:
-            options['p'] = {'Lq': 0.25, 'Lh': 0.5, 'L1': 1.0}.get(self.feature)
-            options['level'] = kwargs.get('regularization', 1.0)
-        elif self.feature == 'noisy':
+        if self.feature == 'noisy':
             options['type'] = kwargs.get('noise_type', 'relative')
             options['level'] = kwargs.get('noise_level', 1e-3)
             options['rerun'] = int(kwargs.get('rerun', 10))
@@ -320,9 +309,7 @@ class Profiles:
         return merits
 
     def noise(self, x, f, k=0):
-        if self.feature in ['Lq', 'Lh', 'L1']:
-            f += self.feature_options['level'] * np.linalg.norm(x, self.feature_options['p'])
-        elif self.feature == 'noisy':
+        if self.feature == 'noisy':
             rng = np.random.default_rng(int(1e8 * abs(np.sin(k) + np.sin(self.feature_options['level']) + np.sum(np.sin(np.abs(np.sin(1e8 * x)))))))
             noise = self.feature_options['level'] * rng.standard_normal()
             if self.feature_options['type'] == 'absolute':

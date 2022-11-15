@@ -1,7 +1,6 @@
 import numpy as np
 import pdfo
 import pybobyqa
-import scipy
 
 
 class Minimizer:
@@ -33,8 +32,7 @@ class Minimizer:
         a_eq = self.problem.a_eq
         b_eq = self.problem.b_eq
         options = dict(self.options)
-        if self.solver.lower() in pdfo.__all__:
-            method = self.solver if self.solver.lower() != 'pdfo' else None
+        if self.solver.lower() == 'bobyqa':
             bounds = pdfo.Bounds(xl, xu)
             constraints = []
             if self.problem.m_lin_ineq > 0:
@@ -46,8 +44,7 @@ class Minimizer:
             if self.problem.m_nonlin_eq > 0:
                 constraints.append(pdfo.NonlinearConstraint(self.problem.c_eq, np.zeros(self.problem.m_nonlin_eq), np.zeros(self.problem.m_nonlin_eq)))
             options['maxfev'] = self.max_eval
-            options['eliminate_lin_eq'] = False
-            res = pdfo.pdfo(self.eval, x0, method=method, bounds=bounds, constraints=constraints, options=options)
+            res = pdfo.pdfo(self.eval, x0, method='bobyqa', bounds=bounds, constraints=constraints, options=options)
             success = res.success
         elif self.solver.lower() == 'py-bobyqa':
             # Py-BOBYQA does not accept infinite bounds.
@@ -64,36 +61,13 @@ class Minimizer:
             res = pybobyqa.solve(self.eval, x0, bounds=(xl, xu), rhobeg=rhobeg, rhoend=rhoend, maxfun=self.max_eval, do_logging=False)
             success = res.flag == res.EXIT_SUCCESS
         else:
-            bounds = scipy.optimize.Bounds(xl, xu)
-            constraints = []
-            if self.problem.m_lin_ineq > 0:
-                constraints.append(scipy.optimize.LinearConstraint(a_ineq, -np.inf, b_ineq))
-            if self.problem.m_lin_eq > 0:
-                constraints.append(scipy.optimize.LinearConstraint(a_eq, b_eq, b_eq))
-            if self.problem.m_nonlin_ineq > 0:
-                constraints.append(scipy.optimize.NonlinearConstraint(self.problem.c_ineq, -np.inf, np.zeros(self.problem.m_nonlin_ineq)))
-            if self.problem.m_nonlin_eq > 0:
-                constraints.append(scipy.optimize.NonlinearConstraint(self.problem.c_eq, np.zeros(self.problem.m_nonlin_eq), np.zeros(self.problem.m_nonlin_eq)))
-            if self.solver.lower() in ['bfgs', 'cg', 'slsqp']:
-                # These solvers do not have any option to control the maximum
-                # number of function evaluations.
-                options['maxiter'] = self.max_eval
-            elif self.solver.lower() in ['l-bfgs-b', 'tnc']:
-                options['maxfun'] = self.max_eval
-            else:
-                options['maxfev'] = self.max_eval
-            res = scipy.optimize.minimize(self.eval, x0, method=self.solver, bounds=bounds, constraints=constraints, options=options)
-            success = res.success
+            raise NotImplementedError
         return success, np.array(self.fun_history, copy=True), np.array(self.maxcv_history, copy=True)
 
     def validate(self):
-        valid_solvers = {'cobyla', 'pdfo', 'slsqp'}
-        if self.problem.type not in 'quadratic other':
-            valid_solvers.update({'lincoa'})
-            if self.problem.type not in 'adjacency linear':
-                valid_solvers.update({'bobyqa', 'l-bfgs-b', 'nelder-mead', 'py-bobyqa', 'tnc'})
-                if self.problem.type not in 'equality bound':
-                    valid_solvers.update({'bfgs', 'cg', 'newuoa', 'uobyqa'})
+        valid_solvers = {}
+        if self.problem.type not in 'quadratic other adjacency linear':
+            valid_solvers = {'bobyqa', 'py-bobyqa'}
         return self.solver.lower() in valid_solvers
 
     def eval(self, x):

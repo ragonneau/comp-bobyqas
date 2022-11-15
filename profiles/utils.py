@@ -1,5 +1,4 @@
 import logging
-from io import StringIO
 
 
 def get_logger(name=None, level=logging.DEBUG):

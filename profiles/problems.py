@@ -16,13 +16,11 @@ class Problems(list):
 
     EXCLUDED = {}
 
-    def __init__(self, n_min, n_max, m_min, m_max, constraints, callback=None):
+    def __init__(self, n_min, n_max, constraints, callback=None):
         super().__init__()
         self.n_min = n_min
         self.n_max = n_max
-        self.m_min = m_min
-        self.m_max = m_max
-        names = pycutest.find_problems(objective='constant linear quadratic sum of squares other', constraints=constraints, regular=True, origin='academic modelling real-world', n=[self.n_min, self.n_max], m=[self.m_min, self.m_max], userM=False)
+        names = pycutest.find_problems(objective='constant linear quadratic sum of squares other', constraints=constraints, regular=True, origin='academic modelling real-world', n=[self.n_min, self.n_max], userM=False)
 
         # The problem instances are not appended yet, because it cannot be
         # Get all problem instances. If a failure occurred when loading a
@@ -65,7 +63,6 @@ class Problems(list):
     def validate(self, problem, callback=None):
         valid = np.all(problem.vartype == 0)
         valid = valid and self.n_min <= problem.n <= self.n_max
-        valid = valid and self.m_min <= problem.m <= self.m_max
         if callback is not None:
             valid = valid and callback(problem)
         return valid
