@@ -47,19 +47,14 @@ class Minimizer:
             res = pdfo.pdfo(self.eval, x0, method='bobyqa', bounds=bounds, constraints=constraints, options=options)
             success = res.success
         elif self.solver.lower() == 'py-bobyqa':
-            # Py-BOBYQA does not accept infinite bounds.
-            xl = np.copy(self.problem.xl)
-            xl[xl == -np.inf] = -1e20
-            xu = np.copy(self.problem.xu)
-            xu[xu == np.inf] = 1e20
-
-            # Py-BOBYQA requires that np.min(xu - xl) >= 2.0 * rhobeg. The
-            # values of rhobeg and rhoend are the default values otherwise.
-            rhobeg = 1.0  # 0.1 * max(np.max(np.abs(x0)), 1.0)
+            rhobeg = 1.0
             rhobeg = min(rhobeg, 0.4999 * np.min(xu - xl))
-            rhoend = min(rhobeg, 1e-6)  # 1e-8
-            res = pybobyqa.solve(self.eval, x0, bounds=(xl, xu), rhobeg=rhobeg, rhoend=rhoend, maxfun=self.max_eval, do_logging=False)
-            success = res.flag == res.EXIT_SUCCESS
+            rhoend = min(rhobeg, 1e-6)
+            try:
+                res = pybobyqa.solve(self.eval, x0, bounds=(xl, xu), rhobeg=rhobeg, rhoend=rhoend, maxfun=self.max_eval, objfun_has_noise=options.get('objfun_has_noise', False), do_logging=False)
+                success = res.flag == res.EXIT_SUCCESS
+            except AssertionError:
+                success = False
         else:
             raise NotImplementedError
         return success, np.array(self.fun_history, copy=True), np.array(self.maxcv_history, copy=True)

@@ -14,7 +14,51 @@ from .utils import get_logger
 
 class Problems(list):
 
-    EXCLUDED = {}
+    EXCLUDED = {
+        # The compilation of the sources is prohibitively time-consuming.
+        'ARGLALE', 'ARGLBLE', 'ARGLCLE', 'BA-L16LS', 'BA-L21', 'BA-L21LS',
+        'BA-L49', 'BA-L49LS', 'BA-L52', 'BA-L52LS', 'BA-L73', 'BA-L73LS',
+        'BDRY2', 'CHANDHEU', 'CHARDIS0', 'CHARDIS1', 'DANWOODLS', 'DMN15102',
+        'DMN15102LS', 'DMN15103', 'DMN15103LS', 'DMN15332', 'DMN15332LS',
+        'DMN15333', 'DMN15333LS', 'DMN37142', 'DMN37142LS', 'DMN37143',
+        'DMN37143LS', 'GAUSS1LS', 'GAUSS2LS', 'GAUSS3LS', 'GAUSSELM', 'GOFFIN',
+        'GPP', 'KOEBHELB', 'LEUVEN3', 'LEUVEN4', 'LEUVEN5', 'LEUVEN6',
+        'LHAIFAM', 'LINCONT', 'LIPPERT2', 'LOBSTERZ', 'MGH17LS', 'MISRA1ALS',
+        'MISRA1CLS', 'MODEL', 'NASH', 'NELSONLS', 'OSBORNEA', 'PDE1', 'PDE2',
+        'PENALTY3', 'RAT43LS', 'RDW2D51F', 'RDW2D51U', 'RDW2D52B', 'RDW2D52F',
+        'RDW2D52U', 'ROSEPETAL', 'TWOD', 'WALL100', 'YATP1SQ', 'YATP2SQ',
+
+        # The starting points contain NaN values.
+        'LHAIFAM',
+
+        # The problems contain a lot of NaN.
+        'HS62', 'HS112', 'LIN',
+
+        # The problems seem not lower-bounded.
+        'INDEF',
+
+        # The problems are known infeasible.
+        'ARGLALE', 'ARGLBLE', 'ARGLCLE', 'MODEL', 'NASH',
+
+        # The problems seem infeasible.
+        'ANTWERP', 'CRESC4', 'CRESC50', 'DEGENLPA', 'DEGENLPB', 'DIXCHLNG',
+        'DUALC1', 'DUALC2', 'DUALC5', 'DUALC8', 'ELATTAR', 'GOULDQP1',
+        'HIMMELBJ', 'HONG', 'HS8', 'HS13', 'HS19', 'HS55', 'HS63', 'HS64',
+        'HS72', 'HS73', 'HS84', 'HS86', 'HS88', 'HS89', 'HS92', 'HS101',
+        'HS102', 'HS103', 'HS106', 'HS107', 'HS109', 'HS119', 'LOADBAL',
+        'LOTSCHD', 'LSNNODOC', 'PORTFL1', 'PORTFL2', 'PORTFL3', 'PORTFL4',
+        'PORTFL6', 'SNAKE', 'SUPERSIM', 'TAME', 'WACHBIEG',
+
+        # The projection of the initial guess fails.
+        'LINCONT',
+
+        # Classical UOBYQA and COBYLA suffer from infinite cycling.
+        'GAUSS1LS', 'GAUSS2LS', 'GAUSS3LS', 'MGH17LS', 'MISRA1ALS', 'MISRA1CLS',
+        'NELSONLS', 'OSBORNEA', 'RAT43LS',
+
+        # Classical COBYLA suffers from infinite cycling.
+        'DANWOODLS', 'KOEBHELB',
+    }
 
     def __init__(self, n_min, n_max, constraints, callback=None):
         super().__init__()

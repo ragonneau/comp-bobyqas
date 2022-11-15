@@ -274,6 +274,8 @@ class Profiles:
         if merits is None:
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
+                if solver.lower() == 'py-bobyqa' and self.feature in ['noisy', 'digits']:
+                    options['objfun_has_noise'] = True
                 optimizer = Minimizer(problem, solver, max_eval, options, self.noise, k)
                 success, fun_history, maxcv_history = optimizer()
             n_eval = min(fun_history.size, max_eval)
@@ -283,7 +285,7 @@ class Profiles:
             np.save(maxcv_path, maxcv_history[:n_eval])
             np.save(var_path, np.array([success]))
         logger = get_logger(__name__)
-        if not np.all(np.isnan(merits)):
+        if not np.all(merits == np.inf):
             if self.feature_options['rerun'] > 1:
                 run_description = f'{solver}({problem.name},{k})'
             else:

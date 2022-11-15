@@ -5,11 +5,11 @@ if __name__ == '__main__':
     profiles(['bobyqa', 'py-bobyqa'])
     del profiles
 
-    profiles = Profiles(1, 50, 'bounds')
+    profiles = Profiles(1, 10, 'bounds', 'noisy')
     profiles(['bobyqa', 'py-bobyqa'])
     del profiles
 
-    profiles = Profiles(1, 10, 'bounds', 'noisy')
+    profiles = Profiles(1, 50, 'bounds')
     profiles(['bobyqa', 'py-bobyqa'])
     del profiles
 
